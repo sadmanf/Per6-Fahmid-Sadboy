@@ -8,7 +8,12 @@ int squareLength = boardWidth/10;
 int topLeftw = (width/2) - (boardWidth/2);
 int topLefth = (height - boardHeight) / 2;
 int current;
+int timer = 0;
+int speed = 1000;
 PFont f;
+
+float r, b, g;
+color c = color(r, g, b);
 
 boolean gameOver;
 boolean paused;
@@ -31,8 +36,7 @@ void clearGrid() {
 }
 
 void setup() { 
-  
-println(PFont.list());
+
   clearGrid();
   size(width, height);
   PImage bg = loadImage("stars.jpg");
@@ -46,10 +50,12 @@ println(PFont.list());
 
   for (int x = 0; x < rows; x++) {
     for (int y = 0; y < cols; y++) {
-      stroke(255);
-      strokeWeight(0.5);
-      fill(153, 204, 255, 130);
-      rect(topLeftw + (squareLength * y), topLefth + (squareLength * x), squareLength, squareLength);
+      if (Grid[x][y] == 0) {
+        stroke(255);
+        strokeWeight(0.5);
+        fill(153, 204, 255, 130);
+        rect(topLeftw + (squareLength * y), topLefth + (squareLength * x), squareLength, squareLength);
+      }
     }
   }
 }
@@ -61,6 +67,41 @@ void setGrid(int[] L, int val) {
 }
 
 void check() {
+  // REDRAWS THE ENTIRE BOARD
+  int timer = 0;
+  size(width, height);
+  PImage bg = loadImage("stars.jpg");
+  background(bg);
+  f = createFont("Gothic Bold", 20, true);
+
+  stroke(255);
+  strokeWeight(2);
+  fill(153, 204, 255, 10);
+  rect(topLeftw, topLefth, boardWidth, boardHeight); 
+
+  for (int x = 0; x < rows; x++) {
+    for (int y = 0; y < cols; y++) {
+      if (Grid[x][y] == 0) {
+        stroke(255);
+        strokeWeight(0.5);
+        fill(153, 204, 255, 130);
+        rect(topLeftw + (squareLength * y), topLefth + (squareLength * x), squareLength, squareLength);
+      }
+    }
+  }
+
+  // WRITE MY NAME IN THE BOTTOM RIGHT CORNER
+
+
+  r = noise(frameCount) + 10;//255 - noise(frameCount * 0.01) * 255;
+  b = 255;
+  g = noise(frameCount * 0.025) * 255;
+  fill(c);
+  textFont(f, 30);
+  textAlign(RIGHT);
+  text("Sadman Fahmid", width - 15, height - 15);
+
+
   /*
    1. I = cyan rgb(0,255,255)
    2. O = yellow rgb(255,255,0)
@@ -236,18 +277,12 @@ void keyPressed() {
   setGrid(C, current);
 }
 
+
 void draw() {
-  float r, g, b;
   r = noise(frameCount) + 10;//255 - noise(frameCount * 0.01) * 255;
   b = /*frameCount % */ 255;
   g = noise(frameCount * 0.025) * 255;
-  color c = color(r, g, b);
-
-  fill(c);
-  textFont(f, 30);
-  textAlign(RIGHT);
   text("Sadman Fahmid", width - 15, height - 15);
-
   if (gameOver) {
     fill(r, g, b, 2);
     textFont(f, 90);
@@ -255,9 +290,18 @@ void draw() {
     text("GAME OVER", width/2, height/2);
   } else {
     if (!inAction) { 
+      timer = 0;
       spawn();
       println("Has Spawned");
       check();
+    }
+    if (millis() - timer >= speed && canMoveDown()) {  
+      setGrid(C, 0);
+      for (int x = 0; x < 7; x+=2) {
+        C[x]++;
+      }
+      timer = millis();
+      setGrid(C, current);
     }
     check();
   }
