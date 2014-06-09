@@ -16,7 +16,7 @@ float r, b, g;
 color c = color(r, g, b);
 
 boolean gameOver;
-boolean paused;
+boolean paused = true;
 boolean inAction = false;
 boolean flat;
 
@@ -246,15 +246,17 @@ boolean canMoveRight() {
 }
 
 boolean canMoveDown() {
+  setGrid(C, 0);
   for (int x = 0; x < 7; x+=2) {
-    if (C[x] >= rows-1 )return false;
+    if (C[x] >= rows-1) return false;
+    println(x+1);
+    if (Grid[C[x]-1][C[x+1]] != 0) return false;
   }
   return true;
 }
 
 void keyPressed() {
-
-  int res = keyCode==LEFT ? -1 : (keyCode==RIGHT ? 1 : (keyCode==DOWN ? 2 : 0));
+  int res = keyCode==LEFT ? -1 : (keyCode==RIGHT ? 1 : (keyCode==DOWN ? 2 : (keyCode==ENTER ? 3 : (key== ' ' ? 4 : 0))));
   print(canMoveDown());
   if (res == -1 && canMoveLeft()) {
     setGrid(C, 0);
@@ -273,6 +275,13 @@ void keyPressed() {
     for (int x = 0; x < 7; x+=2) {
       C[x]++;
     }
+  }if (res == 2 && !canMoveDown()){
+    setGrid(C,current);
+     spawn(); 
+  }
+  if (res == 3) { 
+    if (paused) paused = false;
+    else paused = true;
   }
   setGrid(C, current);
 }
@@ -289,21 +298,26 @@ void draw() {
     textAlign(CENTER);
     text("GAME OVER", width/2, height/2);
   } else {
-    if (!inAction) { 
-      timer = 0;
-      spawn();
-      println("Has Spawned");
-      check();
-    }
-    if (millis() - timer >= speed && canMoveDown()) {  
-      setGrid(C, 0);
-      for (int x = 0; x < 7; x+=2) {
-        C[x]++;
+    if (!paused) {
+      if (!inAction) { 
+        timer = 0;
+        spawn();
+        println("Has Spawned");
+        check();
       }
-      timer = millis();
-      setGrid(C, current);
+      if (millis() - timer >= speed && canMoveDown()) {  
+        setGrid(C, 0);
+        for (int x = 0; x < 7; x+=2) {
+          C[x]++;
+        }
+        timer = millis();
+        setGrid(C, current);
+      }
+      check();
+    } else if (paused) {
+      textAlign(CENTER);
+      text("PRESS ENTER TO RESUME PLAYING", width/2, height/2);
     }
-    check();
   }
   fill(c);
 }
